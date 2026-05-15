@@ -185,9 +185,9 @@ export default function TypingBox({ text, isActive, onStats, onComplete }: Props
                 />
               )}
               <span className={
-                state === "correct" ? "text-primary-light" :
+                state === "correct" ? "text-violet-600 font-semibold" :
                 state === "wrong"   ? "text-red-500 bg-red-50 underline underline-offset-2 decoration-red-400" :
-                "text-slate-300"
+                "text-slate-700"
               }>
                 {display}
               </span>

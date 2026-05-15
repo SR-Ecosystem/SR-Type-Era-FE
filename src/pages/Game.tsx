@@ -246,7 +246,7 @@ export default function Game() {
         <div className="max-w-4xl mx-auto flex flex-col gap-6">
           {/* Top: Racing Track */}
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <RacingTrack players={players} myId={user?._id} />
+            <RacingTrack players={players} myId={user?._id} gameEnded={isDone} />
           </motion.div>
 
           {/* Bottom: typing + stats */}
