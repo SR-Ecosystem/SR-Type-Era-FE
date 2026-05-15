@@ -26,15 +26,59 @@ const NEXT_STATUS: Record<string, string> = {
 
 interface EditState { name: string; paragraph: string; timeLimit: number; }
 
+const TEMPLATES = [
+  {
+    label: "🟢 Beginner",
+    name: "Beginner's Typing Challenge",
+    paragraph: "The sun rises in the east and sets in the west. Every day brings a new chance to learn something new and grow as a person. Hard work and dedication are the keys to success in life.",
+  },
+  {
+    label: "🟡 Easy",
+    name: "Speed Sprint",
+    paragraph: "Typing is a skill that improves with daily practice. The more you type, the faster and more accurate you become. Focus on accuracy first, then speed will follow naturally over time.",
+  },
+  {
+    label: "🟠 Medium",
+    name: "Paragraph Challenge",
+    paragraph: "Technology has transformed the way humans communicate and collaborate across the globe. From smartphones to artificial intelligence, innovations continue to reshape industries and redefine possibilities. Staying current with these trends is essential for professionals in every field.",
+  },
+  {
+    label: "🔴 Hard",
+    name: "Advanced Speed Test",
+    paragraph: "The proliferation of digital infrastructure has fundamentally altered socioeconomic dynamics, enabling unprecedented levels of connectivity and information dissemination. Organizations must adapt their strategic frameworks to leverage emerging technologies while simultaneously mitigating associated cybersecurity vulnerabilities and ethical considerations.",
+  },
+  {
+    label: "💻 Code",
+    name: "Developer Sprint",
+    paragraph: "const fetchData = async (url) => { try { const response = await fetch(url); const data = await response.json(); return data; } catch (error) { console.error('Fetch failed:', error); throw error; } };",
+  },
+  {
+    label: "📖 Literature",
+    name: "Literary Sprint",
+    paragraph: "It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of light, it was the season of darkness.",
+  },
+  {
+    label: "🌍 Science",
+    name: "Science Typing Test",
+    paragraph: "Photosynthesis is the process by which green plants convert sunlight into chemical energy stored as glucose. Chlorophyll in plant cells absorbs light energy, which drives the conversion of carbon dioxide and water into glucose and oxygen, sustaining nearly all life on Earth.",
+  },
+  {
+    label: "🧠 Expert",
+    name: "Expert Championship",
+    paragraph: "Quantum entanglement describes a phenomenon whereby two particles become correlated in such a manner that the quantum state of each cannot be described independently of the state of the others, even when separated by large distances. Einstein famously referred to this as spooky action at a distance, challenging classical notions of locality and realism.",
+  },
+];
+
 export default function AdminCompetitions() {
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [loading,      setLoading]      = useState(true);
   const [showCreate,   setShowCreate]   = useState(false);
   const [editId,       setEditId]       = useState<string | null>(null);
   const [editState,    setEditState]    = useState<EditState>({ name: "", paragraph: "", timeLimit: 60 });
-  const [newComp,      setNewComp]      = useState({ name: "", paragraph: "", timeLimit: 60 });
+  const [newComp,      setNewComp]      = useState({ name: "", paragraph: "", timeLimit: 0 });
   const [creating,     setCreating]     = useState(false);
   const [expandedId,   setExpandedId]   = useState<string | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -122,7 +166,43 @@ export default function AdminCompetitions() {
               exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6"
             >
               <div className="card p-6 space-y-4">
-                <h3 className="font-bold text-base">Create New Competition</h3>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <h3 className="font-bold text-base">Create New Competition</h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowTemplates(v => !v)}
+                    className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors border border-violet-200"
+                  >
+                    ⚡ {showTemplates ? "Hide Templates" : "Use a Template"}
+                  </button>
+                </div>
+
+                {/* Template Picker */}
+                <AnimatePresence>
+                  {showTemplates && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }} className="overflow-hidden"
+                    >
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pb-2">
+                        {TEMPLATES.map((t) => (
+                          <button
+                            key={t.name} type="button"
+                            onClick={() => {
+                              setNewComp(p => ({ ...p, name: t.name, paragraph: t.paragraph }));
+                              setShowTemplates(false);
+                            }}
+                            className="text-left p-3 rounded-xl border-2 border-slate-200 hover:border-primary hover:bg-primary/5 transition-all group"
+                          >
+                            <div className="text-xs font-bold text-slate-700 group-hover:text-primary">{t.label}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5 truncate">{t.name}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <div className="grid md:grid-cols-1 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-600">Competition Name</label>
@@ -137,12 +217,12 @@ export default function AdminCompetitions() {
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-slate-600">Typing Paragraph</label>
                   <textarea
-                    rows={4} value={newComp.paragraph}
+                    rows={5} value={newComp.paragraph}
                     onChange={e => setNewComp(p => ({ ...p, paragraph: e.target.value }))}
-                    placeholder="Enter the text participants will type…"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all resize-none"
+                    placeholder="Enter the text participants will type… or pick a template above"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all resize-y"
                   />
-                  <p className="text-xs text-slate-400">{newComp.paragraph.length} characters</p>
+                  <p className="text-xs text-slate-400">{newComp.paragraph.length} / 5000 characters</p>
                 </div>
                 <div className="flex gap-3">
                   <button onClick={handleCreate} disabled={creating}
@@ -150,7 +230,7 @@ export default function AdminCompetitions() {
                   >
                     {creating ? <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : "Create Competition"}
                   </button>
-                  <button onClick={() => setShowCreate(false)} className="bg-slate-100 hover:bg-slate-200 rounded-xl px-5 py-2 text-sm font-semibold transition-colors">Cancel</button>
+                  <button onClick={() => { setShowCreate(false); setShowTemplates(false); }} className="bg-slate-100 hover:bg-slate-200 rounded-xl px-5 py-2 text-sm font-semibold transition-colors">Cancel</button>
                 </div>
               </div>
             </motion.div>
