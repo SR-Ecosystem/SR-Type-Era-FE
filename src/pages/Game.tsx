@@ -185,14 +185,18 @@ export default function Game() {
     // Small buffer to allow all lingering submissions from other players to hit the DB
     await new Promise(res => setTimeout(res, 800));
 
-    // Fetch final leaderboard
-    let finalPlayers = playersRef.current;
+    let finalPlayers = [...playersRef.current];
     try {
       const lb = await resultAPI.getLeaderboard(comp._id);
-      finalPlayers = lb.data.leaderboard.map((r: any) => ({
-        userId: r.userId, userName: r.name,
-        wpm: r.wpm, accuracy: r.accuracy, progress: 100, finished: true,
-      }));
+      if (lb.data?.leaderboard?.length > 0) {
+        finalPlayers = finalPlayers.map(p => {
+          const dbMatch = lb.data.leaderboard.find((r: any) => String(r.userId) === String(p.userId));
+          if (dbMatch) {
+            return { ...p, wpm: dbMatch.wpm, accuracy: dbMatch.accuracy, progress: 100, finished: true };
+          }
+          return p;
+        });
+      }
     } catch {}
 
     navigate("/result", { state: { stats: statsRef.current, players: finalPlayers, myId: user?._id, competition: comp } });

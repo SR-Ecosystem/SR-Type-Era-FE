@@ -28,7 +28,7 @@ export default function Result() {
   }
 
   const { stats, players, myId } = state;
-  const sorted  = [...players].sort((a, b) => b.wpm - a.wpm);
+  const sorted  = [...players].sort((a, b) => b.progress - a.progress || b.wpm - a.wpm);
   const myRank  = sorted.findIndex(p => String(p.userId) === String(myId)) + 1;
   const isTop3  = myRank > 0 && myRank <= 3;
 
