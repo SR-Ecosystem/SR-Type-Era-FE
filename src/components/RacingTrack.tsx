@@ -69,7 +69,7 @@ export default function RacingTrack({ players, myId, gameEnded = false }: Props)
                   transition={{ type: "spring", stiffness: 80, damping: 15 }}
                   className="absolute bottom-[2px] -translate-x-1/2 flex flex-col items-center z-20"
                 >
-                  <div style={{ filter: `hue-rotate(${i * 55}deg)` }} className="text-3xl drop-shadow-md">
+                  <div style={{ filter: `hue-rotate(${i * 55}deg)`, transform: "scaleX(-1)" }} className="text-3xl drop-shadow-md">
                     🏎️
                   </div>
                 </motion.div>
