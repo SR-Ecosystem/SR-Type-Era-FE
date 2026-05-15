@@ -10,15 +10,8 @@ interface Props {
 const MEDALS = ["🥇", "🥈", "🥉"];
 
 export default function RacingTrack({ players, myId, gameEnded = false }: Props) {
-  // During race: current user first, then by progress/wpm
-  // After race: sort purely by progress then wpm to show final rankings
-  const sortedPlayers = [...players].sort((a, b) => {
-    if (!gameEnded) {
-      if (a.userId === myId) return -1;
-      if (b.userId === myId) return 1;
-    }
-    return b.progress - a.progress || b.wpm - a.wpm;
-  });
+  // Sort purely by progress then wpm to show dynamic live rankings at all times
+  const sortedPlayers = [...players].sort((a, b) => b.progress - a.progress || b.wpm - a.wpm);
 
   return (
     <div className="card p-6 flex flex-col gap-6 w-full overflow-hidden bg-white/60 backdrop-blur-md border-2 border-slate-100 shadow-sm rounded-xl mb-6">
@@ -27,19 +20,22 @@ export default function RacingTrack({ players, myId, gameEnded = false }: Props)
       ) : (
         sortedPlayers.map((p, i) => {
           const isMe = p.userId === myId;
-          const medal = gameEnded ? (MEDALS[i] ?? `#${i + 1}`) : null;
+          const rankIndex = sortedPlayers.findIndex(r => r.userId === p.userId);
+          const isFinished = p.progress >= 100;
+          const showMedal = gameEnded || isFinished;
+          const medal = showMedal ? (MEDALS[rankIndex] ?? `#${rankIndex + 1}`) : null;
 
           return (
-            <div key={p.userId} className="relative w-full flex items-center group">
+            <motion.div layout transition={{ type: "spring", stiffness: 100, damping: 15 }} key={p.userId} className="relative w-full flex items-center group">
               {/* Label */}
               <div className="w-28 shrink-0 flex flex-col items-end pr-4 z-10">
                 <div className="flex items-center gap-1.5 justify-end w-full">
-                  {/* Position badge — only shown after game ends */}
-                  {gameEnded && (
+                  {/* Position badge — shown after game ends OR if player has finished */}
+                  {showMedal && (
                     <motion.span
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: i * 0.15, type: "spring", stiffness: 200 }}
+                      transition={{ type: "spring", stiffness: 200 }}
                       className="text-base leading-none"
                     >
                       {medal}
@@ -55,7 +51,7 @@ export default function RacingTrack({ players, myId, gameEnded = false }: Props)
               {/* Track Line */}
               <div className="flex-1 relative h-8 border-b-2 border-dashed border-slate-300">
                 {/* Finish line */}
-                {gameEnded && p.progress >= 100 && (
+                {isFinished && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -81,7 +77,7 @@ export default function RacingTrack({ players, myId, gameEnded = false }: Props)
                   {p.wpm} <span className="text-[10px] uppercase">wpm</span>
                 </span>
               </div>
-            </div>
+            </motion.div>
           );
         })
       )}
