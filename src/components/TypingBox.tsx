@@ -172,28 +172,52 @@ export default function TypingBox({ text, isActive, onStats, onComplete }: Props
         ${shake ? "shake" : ""}`}
       onClick={() => boxRef.current?.focus()}
     >
-      <div className="flex flex-wrap">
-        {chars.map(({ ch, state }, i) => {
-          const isCursor = i === typed.length && isActive;
-          const display  = ch === " " ? "\u00A0" : ch;
-          return (
-            <span key={i} className="relative">
-              {isCursor && (
-                <motion.span
-                  layoutId="caret"
-                  className="absolute left-0 top-[0.1em] bottom-[0.1em] w-[2px] bg-primary caret-blink"
-                />
-              )}
-              <span className={
-                state === "correct" ? "text-violet-600 font-semibold" :
-                state === "wrong"   ? "text-red-500 bg-red-50 underline underline-offset-2 decoration-red-400" :
-                "text-slate-700"
-              }>
-                {display}
+      {/* Group characters into words so no word ever breaks mid-character */}
+      <div className="flex flex-wrap gap-x-[0.3em]">
+        {(() => {
+          // Build word-groups: each group is an array of {ch, state, globalIdx}
+          const groups: { ch: string; state: CharState; idx: number }[][] = [];
+          let current: { ch: string; state: CharState; idx: number }[] = [];
+          chars.forEach(({ ch, state }, i) => {
+            if (ch === " ") {
+              if (current.length) { groups.push(current); current = []; }
+              // Push the space as its own single-char group
+              groups.push([{ ch: " ", state, idx: i }]);
+            } else {
+              current.push({ ch, state, idx: i });
+            }
+          });
+          if (current.length) groups.push(current);
+
+          return groups.map((group, gi) => {
+            const isSpace = group.length === 1 && group[0].ch === " ";
+            return (
+              <span key={gi} className={isSpace ? "w-0" : "inline-flex"}>
+                {group.map(({ ch, state, idx }) => {
+                  const isCursor = idx === typed.length && isActive;
+                  const display  = ch === " " ? "\u00A0" : ch;
+                  return (
+                    <span key={idx} className="relative">
+                      {isCursor && (
+                        <motion.span
+                          layoutId="caret"
+                          className="absolute left-0 top-[0.1em] bottom-[0.1em] w-[2px] bg-primary caret-blink"
+                        />
+                      )}
+                      <span className={
+                        state === "correct" ? "text-violet-600 font-semibold" :
+                        state === "wrong"   ? "text-red-500 bg-red-50 underline underline-offset-2 decoration-red-400" :
+                        "text-slate-700"
+                      }>
+                        {display}
+                      </span>
+                    </span>
+                  );
+                })}
               </span>
-            </span>
-          );
-        })}
+            );
+          });
+        })()}
       </div>
       {!isActive && typed.length === 0 && (
         <p className="text-slate-400 text-sm mt-4 font-sans">

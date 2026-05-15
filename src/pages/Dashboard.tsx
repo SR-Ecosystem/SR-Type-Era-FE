@@ -20,14 +20,22 @@ export default function Dashboard() {
 
   useEffect(() => {
     refreshUser();
-    competitionAPI.getActive()
-      .then(r => setCompetitions(r.data.competitions))
-      .catch(() => toast.error("Failed to load competitions"))
-      .finally(() => setLoadingComps(false));
+    const fetchComps = () =>
+      competitionAPI.getActive()
+        .then(r => setCompetitions(r.data.competitions))
+        .catch(() => toast.error("Failed to load competitions"))
+        .finally(() => setLoadingComps(false));
+
+    fetchComps();
+    // Poll every 5 seconds so participant count stays live
+    const interval = setInterval(fetchComps, 5000);
+
     resultAPI.getMyResults()
       .then(r => setResults(r.data.results))
       .catch(() => {})
       .finally(() => setLoadingRes(false));
+
+    return () => clearInterval(interval);
   }, []); // eslint-disable-line
 
   const s = user?.stats;
